@@ -228,6 +228,7 @@ class AVL(BST):
                 forDeletion = p
                 parentDeletion = pad
             else:
+                print("pred")
                 if mode:
                     pred, pad_pred, son_pred = self.pred(p)
                     p.data = pred.data
@@ -247,11 +248,11 @@ class AVL(BST):
                     forDeletion = sus
                     parentDeletion = pad_sus
                  
-            print("!!! eliminado:")                       
-            print(forDeletion.data)            
+            print("!!! eliminado: {}".format(forDeletion.data))
+            print("!!! padre: {}".format(parentDeletion.data))        
+            print("!!! root: {}".format(self.root.data))
             
-            self.root = self.__delete_balance_r(parentDeletion, forDeletion.data, self.root)
-            print(self.root.data)
+            self.root = self.__delete_balance_r(parentDeletion, self.root)
             if(show): self.graph("lastDeletion").view()
             
             del forDeletion
@@ -260,7 +261,8 @@ class AVL(BST):
         else:
             return False
     
-    def __delete_balance_r(self, parentOfDeletion: Node, deletedData: Any, node: Optional[Node] = None):
+    def __delete_balance_r(self, parentOfDeletion: Node, node: Optional[Node] = None):
+        # El padre del nodo eliminado es aquel que puede tener un balance 2 o -2 !! REVISAR/INVESTIGAR/PROBAR QUE ESTO SEA CIERTO SIEMPRE
         if(node.data == parentOfDeletion.data):
             print("estoy en el padre del eliminado: {}".format(node.data))
             
@@ -280,12 +282,12 @@ class AVL(BST):
                 else: # Si es 1, toca hacer una doble rotacion izquierda-derecha
                     node = self.dlrr(node)                
         else:
-            if(deletedData > node.right.data):
-                node.right = self.__delete_balance_r(parentOfDeletion, deletedData, node.right)
-            elif(deletedData < node.left.data):
-                node.left = self.__delete_balance_r(parentOfDeletion, deletedData, node.left)
-                
-        return node                    
+            # Si aun no se ha llegado al padre del nodo borrado seguir adentrandose al arbol
+            if(parentOfDeletion.data > node.data):
+                node.right = self.__delete_balance_r(parentOfDeletion, node.right)
+            elif(parentOfDeletion.data < node.data):
+                node.left = self.__delete_balance_r(parentOfDeletion, node.left)
+        return node
     
     def insert(self, data: Any, show: Optional[bool] = False) -> bool:
         s = self.search(data)
@@ -406,12 +408,12 @@ class AVL(BST):
         return aux
     
     def drlr(self, node: Node) -> Node:
-        print("DERECHA-IZQUIERDA!")
+        print("CALLING: DERECHA-IZQUIERDA!")
         node.right = self.srr(node.right)
         return self.slr(node)
     
     def dlrr(self, node: Node) -> Node:
-        print("IZQUIERDA-DERECHA!")
+        print("CALLING IZQUIERDA-DERECHA!")
         node.left = self.slr(node.left)
         return self.srr(node)
     
