@@ -164,7 +164,7 @@ class BST(BinaryTree):
                 del p
             else:
                 if mode:
-                    pred, pad_pred, son_pred = self.__pred(p)
+                    pred, pad_pred, son_pred = self.pred(p)
                     p.data = pred.data
                     if p == pad_pred:
                         pad_pred.left = son_pred
@@ -172,7 +172,7 @@ class BST(BinaryTree):
                         pad_pred.right = son_pred
                     del pred
                 else:
-                    sus, pad_sus, son_sus = self.__sus(p)
+                    sus, pad_sus, son_sus = self.sus(p)
                     p.data = sus.data
                     if p == pad_sus:
                         pad_sus.right = son_sus
@@ -182,13 +182,13 @@ class BST(BinaryTree):
             return True
         return False
 
-    def __pred(self, node: "Node") -> Tuple["Node", "Node", Optional["Node"]]:
+    def pred(self, node: "Node") -> Tuple["Node", "Node", Optional["Node"]]:
         p, pad = node.left, node
         while p.right is not None:
             p, pad = p.right, p
         return p, pad, p.left
 
-    def __sus(self, node: "Node") -> Tuple["Node", "Node", Optional["Node"]]:
+    def sus(self, node: "Node") -> Tuple["Node", "Node", Optional["Node"]]:
         p, pad = node.right, node
         while p.left is not None:
             p, pad = p.left, p
@@ -200,6 +200,92 @@ class BST(BinaryTree):
 class AVL(BST):
     def __init__(self, root: Optional["Node"] = None) -> None:
         super().__init__(root)
+        
+    def delete(self, data: Any, mode: bool = True, show: bool = False) -> bool:
+        forDeletion = None
+        parentDeletion = None
+        p, pad = self.search(data)
+        if p is not None:
+            if p.left is None and p.right is None:
+                if p == pad.left:
+                    pad.left = None
+                else:
+                    pad.right = None
+                forDeletion = p
+                parentDeletion = pad
+            elif p.left is None and p.right is not None:
+                if p == pad.left:
+                    pad.left = p.right
+                else:
+                    pad.right = p.right
+                forDeletion = p
+                parentDeletion = pad
+            elif p.left is not None and p.right is None:
+                if p == pad.left:
+                    pad.left = p.left
+                else:
+                    pad.right = p.left
+                forDeletion = p
+                parentDeletion = pad
+            else:
+                if mode:
+                    pred, pad_pred, son_pred = self.pred(p)
+                    p.data = pred.data
+                    if p == pad_pred:
+                        pad_pred.left = son_pred
+                    else:
+                        pad_pred.right = son_pred
+                    forDeletion = pred
+                    parentDeletion = pad_pred
+                else:
+                    sus, pad_sus, son_sus = self.sus(p)
+                    p.data = sus.data
+                    if p == pad_sus:
+                        pad_sus.right = son_sus
+                    else:
+                        pad_sus.left = son_sus
+                    forDeletion = sus
+                    parentDeletion = pad_sus
+                 
+            print("!!! eliminado:")                       
+            print(forDeletion.data)            
+            
+            self.root = self.__delete_balance_r(parentDeletion, forDeletion.data, self.root)
+            print(self.root.data)
+            if(show): self.graph("lastDeletion").view()
+            
+            del forDeletion
+            
+            return True
+        else:
+            return False
+    
+    def __delete_balance_r(self, parentOfDeletion: Node, deletedData: Any, node: Optional[Node] = None):
+        if(node.data == parentOfDeletion.data):
+            print("estoy en el padre del eliminado: {}".format(node.data))
+            
+            balance = self.getBalance(node)
+            print("balance {}".format(balance))
+            
+            if(balance == 2): # La eliminacion se hizo del lado izquierdo, porque hay más a la derecha
+                rightBalance = self.getBalance(node.right)
+                if(rightBalance >= 0): # 1 o 0. En caso de ser 1 tambien se hace rotacion izquierda simple
+                    node = self.slr(node)
+                else: # Si es -1, significa una doble rotacion derecha-izquierda
+                    node = self.drlr(node)
+            elif(balance == -2): # La eliminacion se hizo del lado derecho, porque hay más a la izquierda
+                leftBalance = self.getBalance(node.left)
+                if(leftBalance <= 0): # Si es 0 o -1 hacer rotacion simple hacia la derecha
+                    node = self.srr(node)
+                else: # Si es 1, toca hacer una doble rotacion izquierda-derecha
+                    node = self.dlrr(node)                
+        else:
+            if(deletedData > node.right.data):
+                node.right = self.__delete_balance_r(parentOfDeletion, deletedData, node.right)
+            elif(deletedData < node.left.data):
+                node.left = self.__delete_balance_r(parentOfDeletion, deletedData, node.left)
+                
+        return node                    
     
     def insert(self, data: Any, show: Optional[bool] = False) -> bool:
         s = self.search(data)
@@ -234,8 +320,6 @@ class AVL(BST):
             else: # Si es mayor significa que está a su derecha y hay que hacer una doble rotacion (IZQUIERDA DERECHA)
                 return self.dlrr(node)
         if(balance == 2):
-            print("right:")
-            print(node.right.data)
             # Como el balance es 2 significa que hay más hijos del lado derecho
             if(data > node.right.data): # Si la información insertada debe estar a la derecha del hijo derecho del nodo actual se hace hace una rotacion simple (de izquierda)
                 return self.slr(node)
@@ -308,23 +392,26 @@ class AVL(BST):
     """    
                             
     def slr(self, node: Node) -> Node:
-        print("rotacion!")
+        print("IZQUIERDA!")
         aux = node.right
         node.right = aux.left
         aux.left = node
         return aux
     
     def srr(self, node: Node) -> Node:
+        print("DERECHA!")
         aux = node.left
         node.left = aux.right
         aux.right = node
         return aux
     
     def drlr(self, node: Node) -> Node:
+        print("DERECHA-IZQUIERDA!")
         node.right = self.srr(node.right)
         return self.slr(node)
     
     def dlrr(self, node: Node) -> Node:
+        print("IZQUIERDA-DERECHA!")
         node.left = self.slr(node.left)
         return self.srr(node)
     
