@@ -7,7 +7,6 @@ class Node:
         self.data = data
         self.left: Optional["Node"] = None
         self.right: Optional["Node"] = None
-        self.balance: Optional["int"] = 0
 
 class BinaryTree:
 
@@ -89,37 +88,7 @@ class BinaryTree:
     def height_r(self, node: Optional["Node"]) -> int:
         if node is None:
             return 0
-        return 1 + max(self.height_r(node.left), self.height_r(node.right))  
-        
-    def graph(self):
-        g = graphviz.Digraph('g', filename='btree.gv',
-                     node_attr={'shape': 'record', 'height': '.1'})
-        s = []
-        p = self.root
-        while p is not None or len(s) > 0:
-            if p is not None:
-                g.node('{data}'.format(data = p.data), nohtml("<f0>|<f1> {data}|<f2>".format(data = p.data)))
-                print(p.data, end = ' ')
-                s.append(p)
-                
-                if(p.left is not None):
-                    g.edge("{before}:f0".format(before = p.data), "{actual}:f1".format(actual = p.left.data))
-
-                p = p.left
-                    
-                    
-            else:
-                p = s.pop()
-                
-                if(p.right is not None):
-                    g.edge("{before}:f2".format(before = p.data), "{actual}:f1".format(actual = p.right.data))
-                    
-                p = p.right                
-                    
-                    
-        g.view()
-        
-            
+        return 1 + max(self.height_r(node.left), self.height_r(node.right))              
 
     @staticmethod
     def generate_sample_tree() -> "BinaryTree":
@@ -231,28 +200,159 @@ class BST(BinaryTree):
 class AVL(BST):
     def __init__(self, root: Optional["Node"] = None) -> None:
         super().__init__(root)
+    
+    def insert(self, data: Any, show: Optional[bool] = False) -> bool:
+        s = self.search(data)
+        if(s[0] is not None): # Si ya existe, no agregar
+            return False
+        else: # Si no existe, seguir
+            self.root = self.__insert_r(data, self.root) # Insertar recursivamente
+            if(show): self.graph("lastInsert").view()
+            return True
         
-    def insert(self, data: Any) -> bool:
-        inserted = super().insert(data)
-        if(inserted):
-            dummy = Node(data) # Porque siempre será una hoja
-            self.balanceTree(dummy)
+    def __insert_r(self, data: Any, node: Optional[Node] = None):
+        # Si el nodo actual está vacío (None), retornarlo (insertarlo)
+        if(not node):
+            print("🟩🟩🟩🟩 Se inserta {data} 🟩🟩🟩🟩".format(data=data))
+            return Node(data)
+        elif(data < node.data): # Si la informacion a insertar es menor al nodo actual insertarla en la izquieda
+            node.left = self.__insert_r(data, node.left)
+        elif(data > node.data): # Si la informacion a insertar es mayor al nodo actual insertarla en la derecha
+            node.right = self.__insert_r(data, node.right)
         
-    def balance(self, node: Optional["Node"]) -> int:
-        if(node is None):
+        # Cuando finalmente se logre insertar, se halla el equilibrio del nodo actual (el padre del que se acaba de insertar) y sigue subiendo 
+        # hasta llegar nuevamente a la raiz
+        
+        balance = self.getBalance(node)
+        print("NODE: {node}, balance: {bal}".format(node = node.data, bal = balance))
+        # Apenas se encuentra un nodo desbalanceado, se hace la rotacion correspondiente para rebalancearlo
+        if(balance == -2):
+            # Como el balance es -2 significa que hay más hijos del lado izquierdo que el derecho
+            # Por lo tanto está garantizado que existe un hijo directo a la izquierda
+            if(data < node.left.data): # Si la información que se insertó es menor que la del hijo izquierdo, significa que el nodo nuevo está a la izquierda de este (ROTACION DERECHA)
+                return self.srr(node)
+            else: # Si es mayor significa que está a su derecha y hay que hacer una doble rotacion (IZQUIERDA DERECHA)
+                return self.dlrr(node)
+        if(balance == 2):
+            print("right:")
+            print(node.right.data)
+            # Como el balance es 2 significa que hay más hijos del lado derecho
+            if(data > node.right.data): # Si la información insertada debe estar a la derecha del hijo derecho del nodo actual se hace hace una rotacion simple (de izquierda)
+                return self.slr(node)
+            else: # Si está a la izquierda se hace una rotacion doble (derecha izquierda)
+                return self.drlr(node)
+        
+        return node
+            
+        
+    def getBalance(self, node) -> int:
+        if not node:
             return 0
         return super().node_height(node.right) - super().node_height(node.left)
-            
-    def balanceTree(self, until: Node):
+     
+    """
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! no pude hacer que esto funcionase, por eso se está usando insertar recursivamente    
+    def balanceTree(self, until: Any) -> None:
         self.__balanceTree_r(until, self.root)
         
-    def __balanceTree_r(self, until: Node, node: Node, parent: Optional["Node"] = None) -> int:
-        if(node.data == until.data):
-            parentBalance = self.balance(parent)
-            print(parentBalance)
-            return parentBalance
+    def __balanceTree_r(self, until: Any, node: Node, parent: Optional["Node"] = None) -> None:
+        print("------------------------")
+        print("searching for {unt}".format(unt = until))
+        print("currently at {now}".format(now = node.data))
+        
+        # Si no es la raiz, calcular el equilibrio del padre del nodo actual
+        if(parent):
+            parentBalance = self.getBalance(parent)
+            parent.balance = parentBalance
+            print("PARENT '{node}': {balance}".format(node=parent.data, balance=parentBalance))
         else:
-            if(until.data > node.data):
-                return self.__balanceTree_r(until, node.right, node)
+            parentBalance = None
+        
+        print("NODE '{node}': {balance}".format(node=node.data, balance=0))
+        
+        rotated = False
+        aux = None
+        if(node.data is not until): # Si aun no se ha llegado hasta el nodo buscado, seguir              
+            if(until > node.data):
+                rotated, aux = self.__balanceTree_r(until, node.right, node)
             else:
-                return self.__balanceTree_r(until, node.left, node)
+                rotated, aux = self.__balanceTree_r(until, node.left, node)            
+        
+        if(not rotated and (parentBalance == 2 or parentBalance == -2)):
+            self.graph().view("antes")
+            print("🔴🔴 PROBLEMAS 🔴🔴")
+            print("Nodo {n} ({nBalance}) de padre: {padre} ({pBalance})".format(n=node.data, padre=parent.data, nBalance = node.balance, pBalance = parent.balance))
+            
+            signParent = math.copysign(1, parent.balance)
+            signNode = math.copysign(1, node.balance)
+            
+            # Si los signos de los balances son iguales, es una rotacion simple
+            if(signParent == signNode):
+                if(signParent == 1): # Son positivos ambos: ROTACION HACIA IZQUIERDA       
+                    parent = self.slr(parent)
+                else: # Son negativos ambos: ROTACION HACIA DERECHA
+                    self.srr(parent)                    
+            else: # Si son opuestos, es una rotación doble
+                if(signParent == 1): # Si el padre es positivo, ROTACION DERECHA IZQUIERDA
+                    self.drlr(parent)
+                else: # Si el padre es negativo, ROTACION IZQUIEDA DERECHA
+                    self.dlrr(parent)
+            return True, parent
+        else:
+            if(aux is not None):
+                node.data = aux.data
+                node.left = aux.left
+                node.right = aux.right
+            
+            return False, parent
+    """    
+                            
+    def slr(self, node: Node) -> Node:
+        print("rotacion!")
+        aux = node.right
+        node.right = aux.left
+        aux.left = node
+        return aux
+    
+    def srr(self, node: Node) -> Node:
+        aux = node.left
+        node.left = aux.right
+        aux.right = node
+        return aux
+    
+    def drlr(self, node: Node) -> Node:
+        node.right = self.srr(node.right)
+        return self.slr(node)
+    
+    def dlrr(self, node: Node) -> Node:
+        node.left = self.slr(node.left)
+        return self.srr(node)
+    
+    def graph(self, fileName: Optional[str] = "btree") -> graphviz.Digraph:
+        print("GRAFICANDO...")
+        g = graphviz.Digraph('g', filename='{name}.gv'.format(name = fileName),
+                     node_attr={'shape': 'record', 'height': '.1'})
+        s = []
+        p = self.root
+        while p is not None or len(s) > 0:
+            if p is not None:
+                g.node('{data}'.format(data = p.data), nohtml("<f0>|<f1> {data}|<f2> {balance}".format(data = p.data, balance = self.getBalance(p))))
+                print(p.data, end = ' ')
+                s.append(p)
+                
+                if(p.left is not None):
+                    g.edge("{before}:f0".format(before = p.data), "{actual}:f1".format(actual = p.left.data))
+
+                p = p.left
+                    
+                    
+            else:
+                p = s.pop()
+                
+                if(p.right is not None):
+                    g.edge("{before}:f2".format(before = p.data), "{actual}:f1".format(actual = p.right.data))
+                    
+                p = p.right                
+                    
+        print()
+        return g
