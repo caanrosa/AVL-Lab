@@ -1,7 +1,9 @@
 from TreeUtils import *
 import csv
+import os
 
-file_path = "/dataset/dataset_movies.csv"
+dirname = os.path.dirname(__file__)
+file_path = dirname + "/dataset/dataset_movies.csv"
 tree = AVL()
 
 
