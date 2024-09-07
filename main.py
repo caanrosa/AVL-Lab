@@ -16,3 +16,7 @@ tree.delete(10)
 tree.delete(25)
 tree.delete(6)
 tree.delete(8, show=True)
+
+print(tree.uncle(15))
+print(tree.grandfather(4))
+print(tree.father(4))
