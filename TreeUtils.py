@@ -3,7 +3,8 @@ import graphviz
 from graphviz import nohtml
 
 class Node:
-    def __init__(self, data: Any):
+    def __init__(self,titulo, data: Any):
+        self.titulo = titulo
         self.data = data
         self.left: Optional["Node"] = None
         self.right: Optional["Node"] = None
