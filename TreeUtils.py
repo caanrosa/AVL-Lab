@@ -3,9 +3,9 @@ import graphviz
 from graphviz import nohtml
 
 class Node:
-    def __init__(self,titulo, data: Any):
-        self.titulo = titulo
-        self.data = data
+    def __init__(self, data: Any):
+        self.info = data
+        self.data = fila['Title']
         self.left: Optional["Node"] = None
         self.right: Optional["Node"] = None
 
@@ -126,7 +126,7 @@ class BST(BinaryTree):
                     p = p.right
         return p, pad
 
-    def insert(self, data: Any) -> bool:
+    def insert(self,titulo, data: Any) -> bool:
         to_insert = Node(data)
         if self.root is None:
             self.root = to_insert
