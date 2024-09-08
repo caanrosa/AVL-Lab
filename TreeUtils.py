@@ -451,6 +451,71 @@ class AVL(BST):
         print()
         return g
     
+      # Función para encontrar el "tío" de un nodo
+    def uncle(self, elem: Any) -> Optional["Node"]:
+        # Buscar el nodo y su padre
+        p, pad = self.search(elem)
+        
+        # Si el padre no existe, el nodo no tiene tio
+        if pad is None:
+            return False
+        
+        # Buscar al abuelo (padre del padre)
+        pad, gftr = self.search(pad.data)
+        
+        # Si el abuelo no existe, tampoco hay tio
+        if gftr is None:
+            return False
+        
+        # Buscar el tio
+        if pad == gftr.left:
+            return gftr.right
+        else:
+            return gftr.left
+        
+    def grandfather(self, elem: Any) -> Optional["Node"]:
+        # Busca el nodo y a su padre
+        p, pad = self.search(elem)
+        
+        # Si no hay padre, no hay abuelo
+        if pad is None:
+            return None
+        
+        pad_node, gftr = self.search(pad.data)  # Agarramos al padre del padre (abuelo)
+        return gftr
+    
+    def father(self, elem: Any) -> Optional["Node"]:
+        node, pad = self.search(elem)  # Buscamos el nodo y su padre, pero retornamos solo al padre
+        return pad
+    
+    def GetLevel(self, elem):
+        level = 0  # Contador de niveles 
+        node = self.root
+        while node is not None:
+            if (elem == node.data):
+                return level    # Si el nodo es la raiz
+            elif (elem < node.data):
+                node = node.left    # Nos movemos de derecha a izquierda a derecha sumand
+            else:
+                node = node.right
+            level += 1
+        return -1 
+    
+    def level_order(self) -> None:
+        h = self.height()  # Calcula la altura del árbol para saber cuántas veces lo recorre
+        for i in range(1, h + 1):
+            self.print_current_level(self.root, i)
+        print()
+
+    # Imprime TODOS los nodos que están en un nivel específico del árbol 
+    def print_current_level(self, node: Optional["Node"], level: int) -> None:
+        if node is None:
+            return
+        if level == 1:
+            print(node.data, end=" ")
+        elif level > 1:
+            self.print_current_level(node.left, level - 1)
+            self.print_current_level(node.right, level - 1)
     def normalizeData(self, string):
         return string.replace(" ", "").replace(":", "")
 

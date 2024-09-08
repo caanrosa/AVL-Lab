@@ -11,8 +11,16 @@ tree.insert(7)
 tree.insert(8)
 tree.insert(6)
 
-tree.delete(4)
+# tree.delete(4)
 tree.delete(10)
 tree.delete(25)
 tree.delete(6)
 tree.delete(8, show=True)
+
+print(tree.uncle(15))
+print(tree.grandfather(4))
+print(tree.father(4))
+x = tree.GetLevel(4)
+print(x)
+
+tree.level_order()
