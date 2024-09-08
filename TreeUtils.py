@@ -4,7 +4,8 @@ from graphviz import nohtml
 
 class Node:
     def __init__(self, data: Any):
-        self.data = data
+        self.info = data
+        self.data = data['Title']
         self.left: Optional["Node"] = None
         self.right: Optional["Node"] = None
 
@@ -198,13 +199,14 @@ class BST(BinaryTree):
         return super().height_r(node)
     
 class AVL(BST):
-    def __init__(self, root: Optional["Node"] = None) -> None:
+    def __init__(self, metric: str, root: Optional["Node"] = None) -> None:
         super().__init__(root)
+        self.metric = metric
         
     def delete(self, data: Any, mode: bool = True, show: bool = False) -> bool:
         forDeletion = None
         parentDeletion = None
-        p, pad = self.search(data)
+        p, pad = self.search(data[self.metric])
         if p is not None:
             if p.left is None and p.right is None:
                 if p == pad.left:
@@ -232,6 +234,7 @@ class AVL(BST):
                 if mode:
                     pred, pad_pred, son_pred = self.pred(p)
                     p.data = pred.data
+                    p.info = pred.info
                     if p == pad_pred:
                         pad_pred.left = son_pred
                     else:
@@ -241,6 +244,8 @@ class AVL(BST):
                 else:
                     sus, pad_sus, son_sus = self.sus(p)
                     p.data = sus.data
+                    p.info = sus.info
+                    
                     if p == pad_sus:
                         pad_sus.right = son_sus
                     else:
@@ -290,7 +295,7 @@ class AVL(BST):
         return node
     
     def insert(self, data: Any, show: Optional[bool] = False) -> bool:
-        s = self.search(data)
+        s = self.search(data[self.metric])
         if(s[0] is not None): # Si ya existe, no agregar
             return False
         else: # Si no existe, seguir
@@ -303,9 +308,9 @@ class AVL(BST):
         if(not node):
             print("🟩🟩🟩🟩 Se inserta {data} 🟩🟩🟩🟩".format(data=data))
             return Node(data)
-        elif(data < node.data): # Si la informacion a insertar es menor al nodo actual insertarla en la izquieda
+        elif(data[self.metric] < node.data): # Si la informacion a insertar es menor al nodo actual insertarla en la izquieda
             node.left = self.__insert_r(data, node.left)
-        elif(data > node.data): # Si la informacion a insertar es mayor al nodo actual insertarla en la derecha
+        elif(data[self.metric] > node.data): # Si la informacion a insertar es mayor al nodo actual insertarla en la derecha
             node.right = self.__insert_r(data, node.right)
         
         # Cuando finalmente se logre insertar, se halla el equilibrio del nodo actual (el padre del que se acaba de insertar) y sigue subiendo 
@@ -317,13 +322,13 @@ class AVL(BST):
         if(balance == -2):
             # Como el balance es -2 significa que hay más hijos del lado izquierdo que el derecho
             # Por lo tanto está garantizado que existe un hijo directo a la izquierda
-            if(data < node.left.data): # Si la información que se insertó es menor que la del hijo izquierdo, significa que el nodo nuevo está a la izquierda de este (ROTACION DERECHA)
+            if(data[self.metric] < node.left.data): # Si la información que se insertó es menor que la del hijo izquierdo, significa que el nodo nuevo está a la izquierda de este (ROTACION DERECHA)
                 return self.srr(node)
             else: # Si es mayor significa que está a su derecha y hay que hacer una doble rotacion (IZQUIERDA DERECHA)
                 return self.dlrr(node)
         if(balance == 2):
             # Como el balance es 2 significa que hay más hijos del lado derecho
-            if(data > node.right.data): # Si la información insertada debe estar a la derecha del hijo derecho del nodo actual se hace hace una rotacion simple (de izquierda)
+            if(data[self.metric] > node.right.data): # Si la información insertada debe estar a la derecha del hijo derecho del nodo actual se hace hace una rotacion simple (de izquierda)
                 return self.slr(node)
             else: # Si está a la izquierda se hace una rotacion doble (derecha izquierda)
                 return self.drlr(node)
@@ -425,12 +430,12 @@ class AVL(BST):
         p = self.root
         while p is not None or len(s) > 0:
             if p is not None:
-                g.node('{data}'.format(data = p.data), nohtml("<f0>|<f1> {data}|<f2> {balance}".format(data = p.data, balance = self.getBalance(p))))
+                g.node('{data}'.format(data = self.normalizeData(p.data)), nohtml("<f0>|<f1> {data}|<f2> {balance}".format(data = p.data, balance = self.getBalance(p))))
                 print(p.data, end = ' ')
                 s.append(p)
                 
                 if(p.left is not None):
-                    g.edge("{before}:f0".format(before = p.data), "{actual}:f1".format(actual = p.left.data))
+                    g.edge("{before}:f0".format(before = self.normalizeData(p.data)), "{actual}:f1".format(actual = self.normalizeData(p.left.data)))
 
                 p = p.left
                     
@@ -439,7 +444,7 @@ class AVL(BST):
                 p = s.pop()
                 
                 if(p.right is not None):
-                    g.edge("{before}:f2".format(before = p.data), "{actual}:f1".format(actual = p.right.data))
+                    g.edge("{before}:f2".format(before = self.normalizeData(p.data)), "{actual}:f1".format(actual = self.normalizeData(p.right.data)))
                     
                 p = p.right                
                     
@@ -511,3 +516,20 @@ class AVL(BST):
         elif level > 1:
             self.print_current_level(node.left, level - 1)
             self.print_current_level(node.right, level - 1)
+    def normalizeData(self, string):
+        return string.replace(" ", "").replace(":", "")
+
+    def Validacion_dataset(self,year,foreign):
+        p = self.root
+        s = []
+        r = []
+        while p is not None or len(s) > 0:
+                if p is not None:
+                    s.append(p)
+                    p = p.left
+                else:
+                    p = s.pop()
+                    if((int(p.info['Year']== year)) & (float(p.info['Foreign Percent Earnings']) >float(p.info['Domestic Percent Earnings'])) & (int(p.info['Foreign Earnings']) >= foreign)):
+                        r.append(p)
+                    p = p.right
+        return r  
