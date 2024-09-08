@@ -457,15 +457,14 @@ class AVL(BST):
     def Validacion_dataset(self,year,foreign):
         p = self.root
         s = []
+        r = []
         while p is not None or len(s) > 0:
-            if(p.info['year']== year & p.info['foreign_percent'] >p.info['domestic_percent'] & p.info['foreign_percent'] >= foreign):
-                s.append(p)
-            else:
                 if p is not None:
                     s.append(p)
                     p = p.left
                 else:
                     p = s.pop()
-                    print(p.data, end = ' ')
+                    if((p.info['Year']== year) & (float(p.info['Foreign Percent Earnings']) >float(p.info['Domestic Percent Earnings'])) & (int(p.info['Foreign Earnings']) >= foreign)):
+                        r.append(p)
                     p = p.right
         return s  
