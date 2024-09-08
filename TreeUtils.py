@@ -126,7 +126,7 @@ class BST(BinaryTree):
                     p = p.right
         return p, pad
 
-    def insert(self,titulo, data: Any) -> bool:
+    def insert(self, data: Any) -> bool:
         to_insert = Node(data)
         if self.root is None:
             self.root = to_insert
