@@ -464,7 +464,7 @@ class AVL(BST):
                     p = p.left
                 else:
                     p = s.pop()
-                    if((p.info['Year']== year) & (float(p.info['Foreign Percent Earnings']) >float(p.info['Domestic Percent Earnings'])) & (int(p.info['Foreign Earnings']) >= foreign)):
+                    if((int(p.info['Year']== year)) & (float(p.info['Foreign Percent Earnings']) >float(p.info['Domestic Percent Earnings'])) & (int(p.info['Foreign Earnings']) >= foreign)):
                         r.append(p)
                     p = p.right
-        return s  
+        return r  
