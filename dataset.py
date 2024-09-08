@@ -15,3 +15,4 @@ with open(file_path, mode='r') as file:
         tree.insert(fila)
 
 tree.graph("datasetCompleto").view()
+tree.Validacion_dataset(10000,1000000)

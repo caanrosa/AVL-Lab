@@ -453,3 +453,19 @@ class AVL(BST):
     
     def normalizeData(self, string):
         return string.replace(" ", "").replace(":", "")
+
+    def Validacion_dataset(self,year,foreign):
+        p = self.root
+        s = []
+        while p is not None or len(s) > 0:
+            if(p.info['year']== year & p.info['foreign_percent'] >p.info['domestic_percent'] & p.info['foreign_percent'] >= foreign):
+                s.append(p)
+            else:
+                if p is not None:
+                    s.append(p)
+                    p = p.left
+                else:
+                    p = s.pop()
+                    print(p.data, end = ' ')
+                    p = p.right
+        return s  
