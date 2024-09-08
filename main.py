@@ -22,3 +22,5 @@ print(tree.grandfather(4))
 print(tree.father(4))
 x = tree.GetLevel(4)
 print(x)
+
+tree.level_order()

@@ -495,4 +495,19 @@ class AVL(BST):
                 node = node.right
             level += 1
         return -1 
-            
+    
+    def level_order(self) -> None:
+        h = self.height()  # Calcula la altura del árbol para saber cuántas veces lo recorre
+        for i in range(1, h + 1):
+            self.print_current_level(self.root, i)
+        print()
+
+    # Imprime TODOS los nodos que están en un nivel específico del árbol 
+    def print_current_level(self, node: Optional["Node"], level: int) -> None:
+        if node is None:
+            return
+        if level == 1:
+            print(node.data, end=" ")
+        elif level > 1:
+            self.print_current_level(node.left, level - 1)
+            self.print_current_level(node.right, level - 1)
