@@ -12,5 +12,5 @@ with open(file_path, mode='r') as file:
     for fila in lector_csv:
         titulo = fila['Title']
         datos = dict(fila)  # Convertir la fila en un diccionario
-        tree.insert(titulo)
+        tree.insert(fila)
 

@@ -5,7 +5,7 @@ from graphviz import nohtml
 class Node:
     def __init__(self, data: Any):
         self.info = data
-        self.data = fila['Title']
+        self.data = data['Title']
         self.left: Optional["Node"] = None
         self.right: Optional["Node"] = None
 
