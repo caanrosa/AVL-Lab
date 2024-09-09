@@ -113,7 +113,7 @@ class BST(BinaryTree):
     def __init__(self, root: Optional["Node"] = None) -> None:
         super().__init__(root)
 
-    def search(self, data: Any) -> Tuple[Optional["Node"], Optional["Node"]]:
+    def search(self, data: str) -> Tuple[Optional["Node"], Optional["Node"]]:
         p, pad = self.root, None
         while p is not None:
             if data == p.data:
@@ -203,34 +203,45 @@ class AVL(BST):
         super().__init__(root)
         self.metric = metric
         
-    def delete(self, data: Any, mode: bool = True, show: bool = False) -> bool:
+    def delete(self, data: str, mode: bool = True, show: bool = False) -> bool:
         forDeletion = None
         parentDeletion = None
-        p, pad = self.search(data[self.metric])
+        p, pad = self.search(data)
         if p is not None:
             if p.left is None and p.right is None:
-                if p == pad.left:
-                    pad.left = None
+                if(pad is not None):
+                    if p == pad.left:
+                        pad.left = None
+                    else:
+                        pad.right = None
                 else:
-                    pad.right = None
+                    self.root = p.left
+                
                 forDeletion = p
                 parentDeletion = pad
             elif p.left is None and p.right is not None:
-                if p == pad.left:
-                    pad.left = p.right
+                if(pad is not None):
+                    if p == pad.left:
+                        pad.left = p.right
+                    else:
+                        pad.right = p.right
                 else:
-                    pad.right = p.right
+                    self.root = p.right
+                    
                 forDeletion = p
                 parentDeletion = pad
             elif p.left is not None and p.right is None:
-                if p == pad.left:
-                    pad.left = p.left
+                if(pad is not None):
+                    if p == pad.left:
+                        pad.left = p.left
+                    else:
+                        pad.right = p.left
                 else:
-                    pad.right = p.left
+                    self.root = None
+                    
                 forDeletion = p
                 parentDeletion = pad
             else:
-                print("pred")
                 if mode:
                     pred, pad_pred, son_pred = self.pred(p)
                     p.data = pred.data
@@ -252,10 +263,6 @@ class AVL(BST):
                         pad_sus.left = son_sus
                     forDeletion = sus
                     parentDeletion = pad_sus
-                 
-            print("!!! eliminado: {}".format(forDeletion.data))
-            print("!!! padre: {}".format(parentDeletion.data))        
-            print("!!! root: {}".format(self.root.data))
             
             self.root = self.__delete_balance_r(parentDeletion, self.root)
             if(show): self.graph("lastDeletion").view()
@@ -266,10 +273,11 @@ class AVL(BST):
         else:
             return False
     
-    def __delete_balance_r(self, parentOfDeletion: Node, node: Optional[Node] = None):
+    def __delete_balance_r(self, parentOfDeletion: Optional[Node], node: Optional[Node] = None):
+        if(parentOfDeletion is None): return node
         # El padre del nodo eliminado es aquel que puede tener un balance 2 o -2 !! REVISAR/INVESTIGAR/PROBAR QUE ESTO SEA CIERTO SIEMPRE
         if(node.data == parentOfDeletion.data):
-            print("estoy en el padre del eliminado: {}".format(node.data))
+            print("Se llegó al padre del eliminado: {}".format(node.data))
             
             balance = self.getBalance(node)
             print("balance {}".format(balance))
@@ -306,7 +314,7 @@ class AVL(BST):
     def __insert_r(self, data: Any, node: Optional[Node] = None):
         # Si el nodo actual está vacío (None), retornarlo (insertarlo)
         if(not node):
-            print("🟩🟩🟩🟩 Se inserta {data} 🟩🟩🟩🟩".format(data=data))
+            print("✅ Se insertó {data} correctamente".format(data=data))
             return Node(data)
         elif(data[self.metric] < node.data): # Si la informacion a insertar es menor al nodo actual insertarla en la izquieda
             node.left = self.__insert_r(data, node.left)
@@ -336,7 +344,7 @@ class AVL(BST):
         return node
             
         
-    def getBalance(self, node) -> int:
+    def getBalance(self, node: Optional[Node]) -> int:
         if not node:
             return 0
         return super().node_height(node.right) - super().node_height(node.left)
@@ -452,20 +460,20 @@ class AVL(BST):
         return g
     
       # Función para encontrar el "tío" de un nodo
-    def uncle(self, elem: Any) -> Optional["Node"]:
+    def uncle(self, elem: str) -> Optional["Node"]:
         # Buscar el nodo y su padre
         p, pad = self.search(elem)
         
         # Si el padre no existe, el nodo no tiene tio
         if pad is None:
-            return False
+            return None
         
         # Buscar al abuelo (padre del padre)
         pad, gftr = self.search(pad.data)
         
         # Si el abuelo no existe, tampoco hay tio
         if gftr is None:
-            return False
+            return None
         
         # Buscar el tio
         if pad == gftr.left:
@@ -473,7 +481,7 @@ class AVL(BST):
         else:
             return gftr.left
         
-    def grandfather(self, elem: Any) -> Optional["Node"]:
+    def grandfather(self, elem: str) -> Optional["Node"]:
         # Busca el nodo y a su padre
         p, pad = self.search(elem)
         
@@ -484,7 +492,7 @@ class AVL(BST):
         pad_node, gftr = self.search(pad.data)  # Agarramos al padre del padre (abuelo)
         return gftr
     
-    def father(self, elem: Any) -> Optional["Node"]:
+    def father(self, elem: str) -> Optional["Node"]:
         node, pad = self.search(elem)  # Buscamos el nodo y su padre, pero retornamos solo al padre
         return pad
     
@@ -512,14 +520,14 @@ class AVL(BST):
         if node is None:
             return
         if level == 1:
-            print(node.data, end=" ")
+            print("[{}]".format(node.data), end=" ")
         elif level > 1:
             self.print_current_level(node.left, level - 1)
             self.print_current_level(node.right, level - 1)
     def normalizeData(self, string):
         return string.replace(" ", "").replace(":", "")
 
-    def Validacion_dataset(self,year,foreign):
+    def Validacion_dataset(self,year,foreign) -> list[Node]:
         p = self.root
         s = []
         r = []
@@ -529,7 +537,7 @@ class AVL(BST):
                     p = p.left
                 else:
                     p = s.pop()
-                    if((int(p.info['Year']== year)) & (float(p.info['Foreign Percent Earnings']) >float(p.info['Domestic Percent Earnings'])) & (int(p.info['Foreign Earnings']) >= foreign)):
+                    if((int(p.info['Year']) == year) & (float(p.info['Foreign Percent Earnings']) > float(p.info['Domestic Percent Earnings'])) & (int(p.info['Foreign Earnings']) >= foreign)):                        
                         r.append(p)
                     p = p.right
         return r  
