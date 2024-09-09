@@ -348,63 +348,6 @@ class AVL(BST):
         if not node:
             return 0
         return super().node_height(node.right) - super().node_height(node.left)
-     
-    """
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! no pude hacer que esto funcionase, por eso se está usando insertar recursivamente    
-    def balanceTree(self, until: Any) -> None:
-        self.__balanceTree_r(until, self.root)
-        
-    def __balanceTree_r(self, until: Any, node: Node, parent: Optional["Node"] = None) -> None:
-        print("------------------------")
-        print("searching for {unt}".format(unt = until))
-        print("currently at {now}".format(now = node.data))
-        
-        # Si no es la raiz, calcular el equilibrio del padre del nodo actual
-        if(parent):
-            parentBalance = self.getBalance(parent)
-            parent.balance = parentBalance
-            print("PARENT '{node}': {balance}".format(node=parent.data, balance=parentBalance))
-        else:
-            parentBalance = None
-        
-        print("NODE '{node}': {balance}".format(node=node.data, balance=0))
-        
-        rotated = False
-        aux = None
-        if(node.data is not until): # Si aun no se ha llegado hasta el nodo buscado, seguir              
-            if(until > node.data):
-                rotated, aux = self.__balanceTree_r(until, node.right, node)
-            else:
-                rotated, aux = self.__balanceTree_r(until, node.left, node)            
-        
-        if(not rotated and (parentBalance == 2 or parentBalance == -2)):
-            self.graph().view("antes")
-            print("🔴🔴 PROBLEMAS 🔴🔴")
-            print("Nodo {n} ({nBalance}) de padre: {padre} ({pBalance})".format(n=node.data, padre=parent.data, nBalance = node.balance, pBalance = parent.balance))
-            
-            signParent = math.copysign(1, parent.balance)
-            signNode = math.copysign(1, node.balance)
-            
-            # Si los signos de los balances son iguales, es una rotacion simple
-            if(signParent == signNode):
-                if(signParent == 1): # Son positivos ambos: ROTACION HACIA IZQUIERDA       
-                    parent = self.slr(parent)
-                else: # Son negativos ambos: ROTACION HACIA DERECHA
-                    self.srr(parent)                    
-            else: # Si son opuestos, es una rotación doble
-                if(signParent == 1): # Si el padre es positivo, ROTACION DERECHA IZQUIERDA
-                    self.drlr(parent)
-                else: # Si el padre es negativo, ROTACION IZQUIEDA DERECHA
-                    self.dlrr(parent)
-            return True, parent
-        else:
-            if(aux is not None):
-                node.data = aux.data
-                node.left = aux.left
-                node.right = aux.right
-            
-            return False, parent
-    """    
                             
     def slr(self, node: Node) -> Node:
         print("IZQUIERDA!")
